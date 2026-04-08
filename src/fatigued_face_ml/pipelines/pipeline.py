@@ -2,6 +2,7 @@ from kedro.pipeline import Node, Pipeline
 
 
 from .nodes import (
+    run_OpenFace,
     get_OpenFace_result,
     csv_to_dataframe,
     get_OpenFace_result,
@@ -17,6 +18,12 @@ def feature_extraction(**kwargs) -> Pipeline:
     return Pipeline(
         [
             Node(
+                func=run_OpenFace,
+                inputs=None,
+                outputs="openface_extraction_log",
+                name="run_OpenFace",
+            ),
+            Node(
                 func=get_OpenFace_result,
                 inputs=None,
                 outputs="openface_csv",
@@ -27,6 +34,12 @@ def feature_extraction(**kwargs) -> Pipeline:
 def create_dataset_pipeline(**kwargs) -> Pipeline:
     return Pipeline(
         [
+            Node(
+                func=get_OpenFace_result,
+                inputs=None,
+                outputs="openface_csv",
+                name="get_OpenFace_result",
+            ),
             Node(
                 func=csv_to_dataframe,
                 inputs="openface_csv",

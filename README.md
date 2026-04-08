@@ -40,7 +40,7 @@
 
 AU抽出から実行する場合は`data/01_raw/video`に顔動画を、`data/01_raw/json`に疲労度データを置きます。
 
-データセット作成から行う場合は`data/02_intermediate/openface`にAU時系列データを置きます。
+データセット作成から行う場合は`data/01_raw/csv`にAU時系列データを、`data/01_raw/json`に疲労度データを置きます。置きます。
 
 ### 機械学習の実行方法
 

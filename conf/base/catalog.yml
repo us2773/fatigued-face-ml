@@ -16,17 +16,28 @@ openface_csv:
     load_args:
       low_memory: False
 
+openface_extraction_log:
+  type: json.JSONDataset
+  filepath: data/02_intermediate/openface/run_log.json
+  versioned: true
+
 cleaned_dataframe:
   type: pandas.ParquetDataset
   filepath: data/03_primary/cleaned.parquet
+  versioned: true
+
 
 metadata_map:
   type: pandas.ParquetDataset
   filepath: data/03_primary/metadata.parquet
+  versioned: true
+
 
 feature_dataset:
   type: pandas.ParquetDataset
   filepath: data/04_feature/features.parquet
+  versioned: true
+
   
 feature_dataset_preview:
   type: pandas.CSVDataset
@@ -34,19 +45,28 @@ feature_dataset_preview:
   save_args:
     index: False
     encoding: utf-8-sig
+  versioned: true
+  
 
 model_input:
   type: pandas.ParquetDataset
   filepath: data/05_model_input/model_input.parquet
+  versioned: true
+
 
 fatigue_model:
   type: pickle.PickleDataset
   filepath: data/06_models/fatigue_model.pkl
+  versioned: true
+
 
 prediction_output:
   type: kedro_datasets.json.JSONDataset
   filepath: data/07_model_output/predictions.json
+  versioned: true
+
 
 report_scores:
   type: kedro_datasets.json.JSONDataset
   filepath: data/07_model_output/report_scores.json
+  versioned: true

@@ -9,6 +9,7 @@ from sklearn.svm import SVR
 from sklearn.preprocessing import MinMaxScaler
 import glob 
 from typing import Callable, Any
+from datetime import datetime
 
 inputdir = "data/01_raw/csv"
 donedir = "done"
@@ -25,13 +26,20 @@ AU_describe_list = ["Inner brow raiser", "Outer brow raiser",  "Brow lowerer",  
 vas_list = ["vas_sleepiness", "vas_annoyed", "vas_painful"]
 
 # OpenFace FeatureExtractionの実行(1 -> 2)
-def get_OpenFace_result() -> dict[pd.DataFrame]:
+def run_OpenFace() -> dict:
     # PowerShell スクリプト実行
     ps_cmd = ["powershell", "-ExecutionPolicy", "ByPass", "-File", "Exec_FeatureExtraction.ps1"]
     result = subprocess.run(ps_cmd, text=True)
     print("PowerShell stdout:", result.stdout)
     print("PowerShell stderr:", result.stderr)
     
+    return {
+        "status": "completed",
+        "timestamp": datetime.now().isoformat(),
+        "returncode": result.returncode,
+    }
+    
+def get_OpenFace_result() -> dict[pd.DataFrame]:
     # inputディレクトリの動画ファイルのリストを返す
     of_outputs = glob.glob(inputdir+"/*csv")
     movie_dict = {}

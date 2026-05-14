@@ -60,6 +60,11 @@ prediction_output:
   filepath: data/07_model_output/predictions.json
   versioned: true
 
+actuals_and_predicts :
+  type: pandas.CSVDataset
+  filepath: data/07_model_output/all_results.csv
+  versioned: true
+
 
 report_scores:
   type: kedro_datasets.json.JSONDataset

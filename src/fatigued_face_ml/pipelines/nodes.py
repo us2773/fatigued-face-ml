@@ -318,6 +318,8 @@ def leave_one_out_evaluate( df: pd.DataFrame, vas_num:int, name, au_list:list[in
     # 目的変数
     # print("目的変数")
     #df_target = df_data.loc[:,  vas_list[vas_num]]
+    
+    result_list = []
 
     for train_index, test_index in loo.split(df_data):
         # 目的変数
@@ -369,10 +371,18 @@ def leave_one_out_evaluate( df: pd.DataFrame, vas_num:int, name, au_list:list[in
 
         diff = np.abs(y_test - y_pred_diff_orig) #MAE
         diff_list.append(diff)
+        
+        result = [y_test[0], y_pred_diff_orig[0]]
+        result_list.append(result)
 
     diff_arr = np.concatenate(diff_list)
     # print(f"name: {name}, vas_num: {vas_num}")
     MAE = diff_arr.mean()
     # print(f"MAE: {MAE}")
     
-    return MAE
+    result_df = pd.DataFrame(
+        result_list,
+        columns=["actual", "predict"]
+    )
+    
+    return MAE, result_df

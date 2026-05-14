@@ -25,7 +25,7 @@ def feature_extraction(**kwargs) -> Pipeline:
             ),
             Node(
                 func=get_OpenFace_result,
-                inputs=None,
+                inputs=["params:param.openface_manifest"],
                 outputs="openface_csv",
                 name="get_OpenFace_result",
             )
@@ -36,7 +36,7 @@ def create_dataset_pipeline(**kwargs) -> Pipeline:
         [
             Node(
                 func=get_OpenFace_result,
-                inputs=None,
+                inputs=["params:param.openface_manifest"],
                 outputs="openface_csv",
                 name="get_OpenFace_result",
             ),

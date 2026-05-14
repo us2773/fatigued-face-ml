@@ -39,9 +39,9 @@ def run_OpenFace() -> dict:
         "returncode": result.returncode,
     }
     
-def get_OpenFace_result() -> dict[pd.DataFrame]:
+def get_OpenFace_result(openface_manifest: str) -> dict[str, pd.DataFrame]:
     # inputディレクトリの動画ファイルのリストを返す
-    of_outputs = glob.glob(inputdir+"/*csv")
+    of_outputs = glob.glob(inputdir+"/"+openface_manifest+"/*csv")
     movie_dict = {}
     for path in of_outputs:
         movie_name = os.path.splitext(os.path.basename(path))[0]
@@ -54,10 +54,10 @@ def get_OpenFace_result() -> dict[pd.DataFrame]:
     return movie_dict
     
 # CSVをクレンジングしDataFrameを取得(2 -> 3)
-def csv_to_dataframe(partitions: dict[str, Callable]) -> pd.DataFrame:
+def csv_to_dataframe(partitions: dict[str, pd.DataFrame]) -> pd.DataFrame:
     dfs = []
-    for name, load in partitions.items():
-        df = load()
+    for name, df in partitions.items():
+        # df = load()
         df = df[(df[" success"] == 0) | (df[" success"] == 1)]
         movie_name = os.path.splitext(
             os.path.basename(name)
@@ -105,7 +105,6 @@ def get_trend_noise(df: pd.DataFrame)-> dict:
         lst_AUR_residual_var.append(AUR_residual_var)
 
     result_dict = {"AUR_moving_mean": lst_AUR_moving_mean, "AUR_moving_var": lst_AUR_moving_var,"AUR_residual_mean": lst_AUR_residual_mean, "AUR_residual_var": lst_AUR_residual_var}
-    print(result_dict)
     return result_dict
 
 # 指定したAU時系列のピーク点出現頻度の算出
@@ -125,7 +124,7 @@ def get_AU_peak(df: pd.DataFrame)-> dict[list, float]:
         peaks, times = find_AU_peaks(df, plot_num)
 
         num = len(peaks)
-        print(num)
+        # print(num)
         if num == 0 :
             f = 0
         else :
@@ -168,7 +167,7 @@ def json_analyze(jsons: dict[str, Callable[[], Any]]) -> pd.DataFrame:
             })
 
     meta_df = pd.DataFrame(records)
-    print(meta_df["person"].head())
+    # print(meta_df["person"].head())
     return meta_df
 
 # 特徴量生成済データの生成(3 -> 4)

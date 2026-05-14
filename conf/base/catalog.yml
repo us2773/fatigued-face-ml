@@ -9,12 +9,7 @@ raw_json:
   dataset: kedro_datasets.json.JSONDataset
 
 openface_csv:
-  type: kedro_datasets.partitions.PartitionedDataset
-  path: data/02_intermediate/openface
-  dataset:
-    type: pandas.CSVDataset
-    load_args:
-      low_memory: False
+  type: MemoryDataset
 
 openface_extraction_log:
   type: json.JSONDataset

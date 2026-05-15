@@ -4,7 +4,7 @@ import numpy as np
 from statsmodels.nonparametric.smoothers_lowess import lowess
 from scipy.signal import find_peaks, stft
 import subprocess
-from sklearn.model_selection import cross_val_score, LeaveOneOut
+from sklearn.model_selection import LeaveOneOut
 from sklearn.svm import SVR
 from sklearn.preprocessing import MinMaxScaler
 import glob 
@@ -25,7 +25,7 @@ AU_describe_list = ["Inner brow raiser", "Outer brow raiser",  "Brow lowerer",  
 
 vas_list = ["vas_sleepiness", "vas_annoyed", "vas_painful"]
 
-# OpenFace FeatureExtractionの実行(1 -> 2)
+# OpenFace FeatureExtractionの実行
 def run_OpenFace() -> dict:
     # PowerShell スクリプト実行
     ps_cmd = ["powershell", "-ExecutionPolicy", "ByPass", "-File", "Exec_FeatureExtraction.ps1"]
@@ -39,6 +39,7 @@ def run_OpenFace() -> dict:
         "returncode": result.returncode,
     }
     
+# Openface実行結果をMemoryDatasetとして保存
 def get_OpenFace_result(openface_manifest: str) -> dict[str, pd.DataFrame]:
     # inputディレクトリの動画ファイルのリストを返す
     of_outputs = glob.glob(inputdir+"/"+openface_manifest+"/*csv")
@@ -46,14 +47,12 @@ def get_OpenFace_result(openface_manifest: str) -> dict[str, pd.DataFrame]:
     for path in of_outputs:
         movie_name = os.path.splitext(os.path.basename(path))[0]
 
-        # CSVを読み込みフレームワークが想定する形式で保存
         df = pd.read_csv(path, low_memory=False)
-
         movie_dict[movie_name] = df
 
     return movie_dict
     
-# CSVをクレンジングしDataFrameを取得(2 -> 3)
+# CSVをクレンジングしDataFrameを取得(1 -> 3)
 def csv_to_dataframe(partitions: dict[str, pd.DataFrame]) -> pd.DataFrame:
     dfs = []
     for name, df in partitions.items():
@@ -221,6 +220,7 @@ def create_dataset(df_all: pd.DataFrame, meta_data:pd.DataFrame)-> pd.DataFrame 
     df_dataset = pd.DataFrame(records, columns=columns)
     return df_dataset
 
+# DataFrameをCSVとして出力(-> 8)
 def preview_feature_dataset(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
@@ -298,8 +298,9 @@ def learning_model (df: pd.DataFrame, vas_num:int, name, au_list:list[int])->SVR
         "scaler_y": scaler_y,
     }
 
-# 単一人物・単一疲労度の回帰分析のLOO交差検証
-def leave_one_out_evaluate( df: pd.DataFrame, vas_num:int, name, au_list:list[int]) -> np.ndarray:
+# 単一人物・単一疲労度の回帰分析のLOO交差検証(4 -> 7)
+def leave_one_out_evaluate(df: pd.DataFrame, vas_num:int, name, au_list:list[int]) -> np.ndarray:
+    print(f"au_list: {au_list}")
     model = SVR(kernel="rbf", C=1, epsilon=0.1, gamma='auto')
 
     loo = LeaveOneOut()

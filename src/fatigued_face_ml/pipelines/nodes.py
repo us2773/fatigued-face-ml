@@ -322,19 +322,45 @@ def get_au_list_regex(df: pd.DataFrame,  regex: list[str]) :
     else :
         return []
 
-# 単一人物・単一疲労度の回帰分析のLOO交差検証(4 -> 7)
-def leave_one_out_evaluate(df: pd.DataFrame, dataset_name: str, vas_num:int, name, au_list:list[int], start: int, stop: int, step: int, regex: list[str]) -> np.ndarray:
-    
+def get_experiment_description(df: pd.DataFrame, dataset_name: str, vas_num:int, name, au_list:list[int], start: int, stop: int, step: int, regex: list[str], MAE) :
     is_au_complete = False
     if au_list == [] :
         au_list = get_au_list(df, start, stop, step, regex)
     else :
         is_au_complete = True
         
+    if is_au_complete :
+        param =  ""
+    elif regex != "" :
+        param = {
+            "regex": regex
+        }
+    else :
+        param = {
+            "start": start,
+            "stop": stop,
+            "step": step,
+        }
+    feature_desc = {
+        "param": param,
+        "au_list" :au_list, 
+    }
     
-    print(f"au_list: {au_list}")
-    model = SVR(kernel="rbf", C=1, epsilon=0.1, gamma='auto')
+    # 実験結果記録用JSON
+    exp_params = {
+        "dataset": dataset_name,
+        "vas_num": vas_list[vas_num],
+        "person": name,
+        "feature": feature_desc,
+        "MAE": MAE
+    }
+    
+    return exp_params
 
+# 単一人物・単一疲労度の回帰分析のLOO交差検証(4 -> 7)
+def leave_one_out_evaluate(df: pd.DataFrame, dataset_name: str, vas_num:int, name, au_list:list[int], start: int, stop: int, step: int, regex: list[str]) -> np.ndarray:
+
+    model = SVR(kernel="rbf", C=1, epsilon=0.1, gamma='auto')
     loo = LeaveOneOut()
 
     diff_list = []
@@ -422,31 +448,6 @@ def leave_one_out_evaluate(df: pd.DataFrame, dataset_name: str, vas_num:int, nam
         result_list,
         columns=["actual", "predict"]
     )
-    
-    if is_au_complete :
-        param =  ""
-    elif regex != "" :
-        param = {
-            "regex": regex
-        }
-    else :
-        param = {
-            "start": start,
-            "stop": stop,
-            "step": step,
-        }
-    feature_desc = {
-        "param": param,
-        "au_list" :au_list, 
-    }
-    
-    # 実験結果記録用JSON
-    exp_params = {
-        "dataset": dataset_name,
-        "vas_num": vas_list[vas_num],
-        "person": name,
-        "feature": feature_desc,
-        "MAE": MAE
-    }
+    exp_params = get_experiment_description(df, dataset_name, vas_num, name, au_list, start, stop, step, regex, MAE)
     
     return result_df, exp_params

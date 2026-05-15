@@ -65,6 +65,16 @@ actuals_and_predicts :
   filepath: data/07_model_output/all_results.csv
   versioned: true
 
+experiment_description :
+  type: kedro_datasets.json.JSONDataset
+  filepath: data/07_model_output/experiment_description.json
+  versioned: true
+  save_args:
+    ensure_ascii: false
+    indent: 2
+  fs_args:
+    open_args_save:
+      encoding: utf-8
 
 report_scores:
   type: kedro_datasets.json.JSONDataset

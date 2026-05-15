@@ -10,6 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 import glob 
 from typing import Callable, Any
 from datetime import datetime
+import re
 
 inputdir = "data/01_raw/csv"
 donedir = "done"
@@ -268,9 +269,12 @@ def get_diff_from_learningdata(df:pd.DataFrame, name:str, vas_num:int) :
     return df_p1_diff, min
 
 # 単一人物・単一疲労度の回帰分析
-def learning_model (df: pd.DataFrame, vas_num:int, name, au_list:list[int])->SVR :
+def learning_model (df: pd.DataFrame, dataset_name: str,vas_num:int, name, au_list:list[int], start: int, stop: int, step: int, regex: list[str])->SVR :
     model = SVR(kernel="rbf", C=1, epsilon=0.1, gamma='auto')
     
+    if au_list == [] :
+        au_list = get_au_list(df, start, stop, step, regex)
+            
     # 全データ
     df_data = df[df["person"]==name]
 
@@ -298,8 +302,36 @@ def learning_model (df: pd.DataFrame, vas_num:int, name, au_list:list[int])->SVR
         "scaler_y": scaler_y,
     }
 
+# 特徴量インデックスリストを返す
+# リスト指定＞正規表現指定＞レンジ指定
+def get_au_list(df:pd.DataFrame, start: int, stop: int, step: int, regex: list[str]) :
+    if regex != "" :
+        return get_au_list_regex(df, regex)
+    else :
+        return range(start, stop, step)
+    
+# 正規表現による特徴量指定
+def get_au_list_regex(df: pd.DataFrame,  regex: list[str]) :
+    if regex != "" :
+        patterns = [re.compile(p) for p in regex]
+        au_list = [
+            i for i, c in enumerate(df.columns)
+            if any(p.search(c) for p in patterns)
+        ]
+        return au_list
+    else :
+        return []
+
 # 単一人物・単一疲労度の回帰分析のLOO交差検証(4 -> 7)
-def leave_one_out_evaluate(df: pd.DataFrame, vas_num:int, name, au_list:list[int]) -> np.ndarray:
+def leave_one_out_evaluate(df: pd.DataFrame, dataset_name: str, vas_num:int, name, au_list:list[int], start: int, stop: int, step: int, regex: list[str]) -> np.ndarray:
+    
+    is_au_complete = False
+    if au_list == [] :
+        au_list = get_au_list(df, start, stop, step, regex)
+    else :
+        is_au_complete = True
+        
+    
     print(f"au_list: {au_list}")
     model = SVR(kernel="rbf", C=1, epsilon=0.1, gamma='auto')
 
@@ -353,22 +385,27 @@ def leave_one_out_evaluate(df: pd.DataFrame, vas_num:int, name, au_list:list[int
         y_train_s = scaler_y.transform(y_train.values.reshape(-1, 1)).ravel()
 
         X_train_df = pd.DataFrame(
-        X_train_s,
-        columns=x_train.columns
+            X_train_s,
+            columns=x_train.columns,
         )
 
         # print("モデル適用")
         model.fit(pd.DataFrame(X_train_df), y_train_s)
+        
+        X_test_df = pd.DataFrame(
+            X_test_s,
+            columns=x_train.columns
+)
 
-        y_pred_s = model.predict(pd.DataFrame(X_test_s))
+        y_pred_s = model.predict(pd.DataFrame(X_test_df))
         y_pred_diff_orig = scaler_y.inverse_transform(y_pred_s.reshape(-1, 1)).ravel()
 
         y_pred_diff_orig += min_fatigue
 
-        print(y_pred_diff_orig)
+        #print(y_pred_diff_orig)
 
         y_test = test.loc[:, vas_list[vas_num]].values
-        print(y_test)
+        #print(y_test)
 
         diff = np.abs(y_test - y_pred_diff_orig) #MAE
         diff_list.append(diff)
@@ -386,4 +423,30 @@ def leave_one_out_evaluate(df: pd.DataFrame, vas_num:int, name, au_list:list[int
         columns=["actual", "predict"]
     )
     
-    return MAE, result_df
+    if is_au_complete :
+        param =  ""
+    elif regex != "" :
+        param = {
+            "regex": regex
+        }
+    else :
+        param = {
+            "start": start,
+            "stop": stop,
+            "step": step,
+        }
+    feature_desc = {
+        "param": param,
+        "au_list" :au_list, 
+    }
+    
+    # 実験結果記録用JSON
+    exp_params = {
+        "dataset": dataset_name,
+        "vas_num": vas_list[vas_num],
+        "person": name,
+        "feature": feature_desc,
+        "MAE": MAE
+    }
+    
+    return result_df, exp_params

@@ -17,5 +17,6 @@ def register_pipelines() -> dict[str, Pipeline]:
     return {
         "__default__": create_dataset_pipeline + machine_learning,
         "feature_extraction": openface_exec,
+        "learn": machine_learning
             }
 

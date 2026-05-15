@@ -71,14 +71,14 @@ def machine_learning(**kargs) -> Pipeline:
         [
             Node(
                 func=learning_model,
-                inputs=["feature_dataset", "params:param.vas_num", "params:param.name", "params:param.features"],
+                inputs=["feature_dataset", "params:param.openface_manifest", "params:param.vas_num", "params:param.name",  "params:features.list", "params:features.start", "params:features.stop", "params:features.step","params:features.regex"],
                 outputs="fatigue_model",
                 name="learning_model"
             ),
             Node(
                 func=leave_one_out_evaluate,
-                inputs=["feature_dataset", "params:param.vas_num", "params:param.name", "params:param.features"],
-                outputs=["report_scores", "actuals_and_predicts"],
+                inputs=["feature_dataset","params:param.openface_manifest", "params:param.vas_num", "params:param.name", "params:features.list", "params:features.start", "params:features.stop", "params:features.step","params:features.regex"],
+                outputs=["actuals_and_predicts", "experiment_description"],
                 name="leave_one_out_evaluate"
             )
         ]
